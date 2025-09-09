@@ -47,7 +47,7 @@ if inception.AuxLogits is not None:
     inception.AuxLogits.fc = nn.Linear(inception.AuxLogits.fc.in_features, num_classes)
 
 # Load trained weights
-state_dict = torch.load("best_model_inceptionv3.pth", map_location=device)
+state_dict = torch.load("models/best_model_inceptionv3.pth", map_location=device)
 inception.load_state_dict(state_dict)
 
 inception = inception.to(device)

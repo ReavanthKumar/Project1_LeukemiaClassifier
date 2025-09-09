@@ -24,7 +24,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load ResNet34
 resnet34 = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
 resnet34.fc = nn.Linear(resnet34.fc.in_features, num_classes)
-resnet34.load_state_dict(torch.load("best_model_resnet34.pth", map_location=device))
+resnet34.load_state_dict(torch.load("models/best_model_resnet34.pth", map_location=device))
 resnet34.eval().to(device)
 
 # Load Inception-v3

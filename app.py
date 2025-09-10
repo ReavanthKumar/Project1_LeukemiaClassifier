@@ -22,8 +22,8 @@ if not os.path.exists("models"):
 # --------------------------
 # 🔹 Azure Blob SAS URLs
 # --------------------------
-RESNET34_URL = "https://<yourstorage>.blob.core.windows.net/models/best_model_resnet34.pth?<sas_token>"
-INCEPTION_URL = "https://<yourstorage>.blob.core.windows.net/models/best_model_inceptionv3.pth?<sas_token>"
+RESNET34_URL = "https://leukemiamodels.blob.core.windows.net/models/best_model_inceptionv3.pth?sp=r&st=2025-09-10T05:39:15Z&se=2026-09-05T13:54:15Z&spr=https&sv=2024-11-04&sr=b&sig=%2FsUNQzQMj%2FHEodWE7QENPxbAt5KPVi6j9a3%2FUhk0m8w%3D"
+INCEPTION_URL = "https://leukemiamodels.blob.core.windows.net/models/best_model_resnet34.pth?sp=r&st=2025-09-10T05:40:18Z&se=2026-12-18T13:55:18Z&spr=https&sv=2024-11-04&sr=b&sig=0xD3lbb3PvN94yZrVTb60oPTKUGvB830Ki6A2iN79Zw%3D"
 
 def download_model(url, local_path):
     """Download model from Azure Blob if not exists locally"""

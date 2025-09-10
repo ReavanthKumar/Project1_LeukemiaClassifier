@@ -13,7 +13,7 @@ CORS(app)
 
 # Enable CORS for all routes 
 #  Ensure static folder exists if not 
-os.path.exists("static"): os.makedirs("static") 
+if not os.path.exists("static"): os.makedirs("static") 
 #Class names 
 class_names = ["Benign", "Early", "Pre", "Pro"] 
 num_classes = 4 

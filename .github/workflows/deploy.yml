@@ -1,7 +1,51 @@
-- name: Deploy to Azure WebApp
-  uses: azure/webapps-deploy@v2
-  with:
-    app-name: leukemiaclassifier
-    slot-name: production
-    publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-    package: .
+name: Deploy Full Stack App (Flask + React) to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Set up Node.js for React build
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies & build
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      # Set up Python for Flask backend
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Copy React build into backend so Flask can serve it
+      - name: Move React build into backend
+        run: |
+          rm -rf backend/frontend
+          mv frontend/build backend/frontend
+
+      # Deploy to Azure Web App
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: leukemiaclassifier   # replace with your App Service name
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./backend

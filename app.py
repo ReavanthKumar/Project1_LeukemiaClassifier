@@ -5,56 +5,72 @@ import torchvision.transforms as transforms
 from torchvision import models
 from flask import Flask, request, jsonify
 from PIL import Image
-
-from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+
+# Azure Blob Storage
+from azure.storage.blob import BlobClient
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Ensure static folder exists
+# Ensure static and model folders exist
 if not os.path.exists("static"):
     os.makedirs("static")
+if not os.path.exists("models"):
+    os.makedirs("models")
 
-# Class names
+# --------------------------
+# 🔹 Azure Blob SAS URLs
+# --------------------------
+RESNET34_URL = "https://<yourstorage>.blob.core.windows.net/models/best_model_resnet34.pth?<sas_token>"
+INCEPTION_URL = "https://<yourstorage>.blob.core.windows.net/models/best_model_inceptionv3.pth?<sas_token>"
+
+def download_model(url, local_path):
+    """Download model from Azure Blob if not exists locally"""
+    if not os.path.exists(local_path):
+        print(f"⬇️ Downloading: {local_path}")
+        blob_client = BlobClient.from_blob_url(url)
+        with open(local_path, "wb") as f:
+            f.write(blob_client.download_blob().readall())
+    else:
+        print(f"✅ Found cached model: {local_path}")
+
+# Download models on startup
+download_model(RESNET34_URL, "models/best_model_resnet34.pth")
+download_model(INCEPTION_URL, "models/best_model_inceptionv3.pth")
+
+# --------------------------
+# 🔹 Config
+# --------------------------
 class_names = ["Benign", "Early", "Pre", "Pro"]
 num_classes = 4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load ResNet34
+# --------------------------
+# 🔹 Load ResNet34
+# --------------------------
 resnet34 = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
 resnet34.fc = nn.Linear(resnet34.fc.in_features, num_classes)
 resnet34.load_state_dict(torch.load("models/best_model_resnet34.pth", map_location=device))
 resnet34.eval().to(device)
 
-# Load Inception-v3
-import torch
-import torch.nn as nn
-from torchvision import models
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-num_classes = 4  # Benign, Early, Pre, Pro (adjust as per your dataset)
-
-# Load inception v3 with aux_logits=True (default)
+# --------------------------
+# 🔹 Load Inception-v3
+# --------------------------
 inception = models.inception_v3(weights=models.Inception_V3_Weights.IMAGENET1K_V1, aux_logits=True)
-
-# Replace main classifier
 inception.fc = nn.Linear(inception.fc.in_features, num_classes)
 
-# Replace auxiliary classifier (since you did this during training)
 if inception.AuxLogits is not None:
     inception.AuxLogits.fc = nn.Linear(inception.AuxLogits.fc.in_features, num_classes)
 
-# Load trained weights
 state_dict = torch.load("models/best_model_inceptionv3.pth", map_location=device)
 inception.load_state_dict(state_dict)
-
 inception = inception.to(device)
 inception.eval()
 
-
-# Transforms
+# --------------------------
+# 🔹 Transforms
+# --------------------------
 transform_resnet = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -69,6 +85,9 @@ transform_incep = transforms.Compose([
                          [0.229, 0.224, 0.225])
 ])
 
+# --------------------------
+# 🔹 Predict Endpoint
+# --------------------------
 @app.route("/predict", methods=["POST"])
 def predict():
     if "file" not in request.files or "model" not in request.form:

@@ -46,6 +46,6 @@ jobs:
       - name: Deploy to Azure WebApp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: leukemiaclassifier   # replace with your App Service name
+          app-name: project-leukemia-classifier   # replace with your App Service name
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./backend
